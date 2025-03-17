@@ -12,13 +12,11 @@ if TOKEN is None:
 
 from config import PREFIX
 
-# Crie um objeto Intents e especifique as intents que você precisa
 intents = discord.Intents.default()
-intents.members = True  # Habilita a Server Members Intent
-intents.message_content = True  # Habilita a Message Content Intent (se precisar)
-intents.presences = True  # Habilita a Presence Intent (se precisar)
+intents.members = True
+intents.message_content = True
+intents.presences = True
 
-# Inicialize o bot com as intents
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
 @bot.event
@@ -30,9 +28,9 @@ async def load_extensions():
         if filename.endswith('.py'):
             try:
                 await bot.load_extension(f'commands.{filename[:-3]}')
-                print(f'Comando {filename} carregado: {filename}')
+                print(f'Cog {filename} carregado: {filename}')
             except Exception as e:
-                print(f'Erro ao carregar o comando {filename}: {e}')
+                print(f'Erro ao carregar o cog {filename}: {e}')
 
 async def main():
     await load_extensions()
@@ -40,7 +38,3 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
-
-# faça um print para saber que esse arquivo foi executado
-
-print('main.py foi executado!')
