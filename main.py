@@ -40,3 +40,7 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+
+# faça um print para saber que esse arquivo foi executado
+
+print('main.py foi executado!')

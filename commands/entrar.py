@@ -16,3 +16,6 @@ class Entrar(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(Entrar(bot))
+
+# faça um print para saber que esse arquivo foi executado
+print('entrar.py foi executado!')
