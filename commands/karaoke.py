@@ -25,7 +25,7 @@ def bot_ativo():
     agora = datetime.now().time()
     inicio = time(19, 0)  # 19:00 (7 da noite)
     fim = time(2, 0)      # 02:00 (2 da madrugada)
-    print(f"Agora: {agora}, Início: {inicio}, Fim: {fim}")  # Adicione este log
+    print(f"Agora: {agora}, Início: {inicio}, Fim: {fim}")
     return inicio <= agora or agora <= fim
 
 class Karaoke(commands.Cog):
@@ -72,8 +72,10 @@ class Karaoke(commands.Cog):
                 'outtmpl': 'music.mp3',
                 'default_search': 'ytsearch',
                 'quiet': True,
-                
-                'ffmpeg_location': 'C:\ffmpeg\ffmpeg-2025-03-13-git-958c46800e-full_build\ffmpeg-2025-03-13-git-958c46800e-full_build\bin\ffmpeg.exe'
+                'http_headers': {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                },
+                'cookiefile': 'cookies.txt'  # Caminho para o arquivo de cookies
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -96,7 +98,6 @@ class Karaoke(commands.Cog):
                 print(f"Erro ao reproduzir o áudio: {e}")
                 await ctx.send(f"Ocorreu um erro ao reproduzir a música: {e}")
                 return
-
 
             # Mostrar letra sincronizada
             for tempo, linha in LETRA.items():
