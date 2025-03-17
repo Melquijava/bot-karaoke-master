@@ -37,11 +37,15 @@ class Karaoke(commands.Cog):
         #if not bot_ativo():  # Comente esta linha
         #    await ctx.send("O bot só funciona das 19h às 2h!")
         #    return
+
+        print(f"Comando karaoke foi chamado! ctx.voice_client: {ctx.voice_client}")  # Adicione este log
+
         if ctx.voice_client is None:
             await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
             return
 
         try:
+            print("Iniciando busca no Spotify...")  # Adicione este log
             # Buscar no Spotify
             results = sp.search(q=musica, limit=1, type='track')
             if results['tracks']['items']:
@@ -52,6 +56,9 @@ class Karaoke(commands.Cog):
             else:
                 pesquisa = f"{musica} instrumental"
 
+            print(f"Pesquisa: {pesquisa}")  # Adicione este log
+
+            print("Iniciando busca no YouTube...")  # Adicione este log
             # Buscar no YouTube
             ydl_opts = {
                 'format': 'bestaudio/best',
@@ -69,6 +76,8 @@ class Karaoke(commands.Cog):
                 info = ydl.extract_info(pesquisa, download=True)
                 url = info['entries'][0]['url']
 
+            print("Reproduzindo áudio...")  # Adicione este log
+
             # Reproduzir áudio
             ffmpeg_options = {'options': '-vn'}
             ctx.voice_client.play(discord.FFmpegPCMAudio('music.mp3', **ffmpeg_options))
@@ -82,7 +91,7 @@ class Karaoke(commands.Cog):
 
         except Exception as e:
             print(f"Erro ao executar o comando karaoke: {e}")
-            await ctx.send("Ocorreu um erro ao executar o comando karaoke.")
+            await ctx.send(f"Ocorreu um erro ao executar o comando karaoke. Erro: {e}")
 
 async def setup(bot):
     await bot.add_cog(Karaoke(bot))
