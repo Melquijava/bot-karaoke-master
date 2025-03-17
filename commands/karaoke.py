@@ -31,21 +31,23 @@ def bot_ativo():
 class Karaoke(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        print("Cog Karaoke inicializado!")
 
     @commands.command()
     async def karaoke(self, ctx, *, musica: str):
-        #if not bot_ativo():  # Comente esta linha
-        #    await ctx.send("O bot só funciona das 19h às 2h!")
-        #    return
+        print(f"Comando karaoke foi chamado! ctx.voice_client: {ctx.voice_client}")
 
-        print(f"Comando karaoke foi chamado! ctx.voice_client: {ctx.voice_client}")  # Adicione este log
+        # Comentar a verificação do bot_ativo para fins de teste
+        # if not bot_ativo():
+        #     await ctx.send("O bot só funciona das 19h às 2h!")
+        #     return
 
         if ctx.voice_client is None:
             await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
             return
 
         try:
-            print("Iniciando busca no Spotify...")  # Adicione este log
+            print("Iniciando busca no Spotify...")
             # Buscar no Spotify
             results = sp.search(q=musica, limit=1, type='track')
             if results['tracks']['items']:
@@ -56,9 +58,9 @@ class Karaoke(commands.Cog):
             else:
                 pesquisa = f"{musica} instrumental"
 
-            print(f"Pesquisa: {pesquisa}")  # Adicione este log
+            print(f"Pesquisa: {pesquisa}")
 
-            print("Iniciando busca no YouTube...")  # Adicione este log
+            print("Iniciando busca no YouTube...")
             # Buscar no YouTube
             ydl_opts = {
                 'format': 'bestaudio/best',
@@ -69,20 +71,32 @@ class Karaoke(commands.Cog):
                 }],
                 'outtmpl': 'music.mp3',
                 'default_search': 'ytsearch',
-                'quiet': True
+                'quiet': True,
+                
+                'ffmpeg_location': 'C:\ffmpeg\ffmpeg-2025-03-13-git-958c46800e-full_build\ffmpeg-2025-03-13-git-958c46800e-full_build\bin\ffmpeg.exe'
             }
 
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(pesquisa, download=True)
-                url = info['entries'][0]['url']
+                try:
+                    info = ydl.extract_info(pesquisa, download=True)
+                    url = info['entries'][0]['url']
+                except Exception as e:
+                    print(f"Erro ao extrair informações do YouTube: {e}")
+                    await ctx.send(f"Ocorreu um erro ao buscar a música no YouTube: {e}")
+                    return
 
-            print("Reproduzindo áudio...")  # Adicione este log
+            print("Reproduzindo áudio...")
 
             # Reproduzir áudio
             ffmpeg_options = {'options': '-vn'}
-            ctx.voice_client.play(discord.FFmpegPCMAudio('music.mp3', **ffmpeg_options))
+            try:
+                ctx.voice_client.play(discord.FFmpegPCMAudio('music.mp3', **ffmpeg_options))
+                await ctx.send(f'Tocando: {pesquisa}')
+            except Exception as e:
+                print(f"Erro ao reproduzir o áudio: {e}")
+                await ctx.send(f"Ocorreu um erro ao reproduzir a música: {e}")
+                return
 
-            await ctx.send(f'Tocando: {pesquisa}')
 
             # Mostrar letra sincronizada
             for tempo, linha in LETRA.items():
