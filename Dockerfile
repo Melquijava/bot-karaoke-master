@@ -1,7 +1,12 @@
-FROM python:3 configurar o FFmpeg corretamente no ambiente de hospedagem do seu bot:
 FROM python:3.9
 
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install -r requirements.vez) o arquivo `requirements.txt` foram modificados.
+RUN pip install -r requirements.txt
+
+RUN apt-get update && apt-get install -y ffmpeg
+
+COPY . .
+
+CMD ["python", "main.py"]
