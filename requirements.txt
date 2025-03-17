@@ -37,3 +37,4 @@ Werkzeug==3.0.4
 wikipedia==1.4.0
 yarl==1.18.3
 yt-dlp==2025.2.19
+PyNaCl
