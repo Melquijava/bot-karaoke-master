@@ -12,7 +12,14 @@ if TOKEN is None:
 
 from config import PREFIX
 
-bot = commands.Bot(command_prefix=PREFIX, intents=discord.Intents.all())
+# Crie um objeto Intents e especifique as intents que você precisa
+intents = discord.Intents.default()
+intents.members = True  # Habilita a Server Members Intent
+intents.message_content = True  # Habilita a Message Content Intent (se precisar)
+intents.presences = True  # Habilita a Presence Intent (se precisar)
+
+# Inicialize o bot com as intents
+bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
 @bot.event
 async def on_ready():
