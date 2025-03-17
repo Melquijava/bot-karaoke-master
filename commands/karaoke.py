@@ -25,6 +25,7 @@ def bot_ativo():
     agora = datetime.now().time()
     inicio = time(19, 0)  # 19:00 (7 da noite)
     fim = time(2, 0)      # 02:00 (2 da madrugada)
+    print(f"Agora: {agora}, Início: {inicio}, Fim: {fim}")  # Adicione este log
     return inicio <= agora or agora <= fim
 
 class Karaoke(commands.Cog):
@@ -33,9 +34,9 @@ class Karaoke(commands.Cog):
 
     @commands.command()
     async def karaoke(self, ctx, *, musica: str):
-        if not bot_ativo():
-            await ctx.send("O bot só funciona das 19h às 2h!")
-            return
+        #if not bot_ativo():  # Comente esta linha
+        #    await ctx.send("O bot só funciona das 19h às 2h!")
+        #    return
         if ctx.voice_client is None:
             await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
             return
