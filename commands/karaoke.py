@@ -24,7 +24,11 @@ class Karaoke(commands.Cog):
         agora = datetime.now().time()
         inicio = time(19, 0)
         fim = time(2, 0)
-        return inicio <= agora or agora <= fim
+
+        ativo = inicio <= agora or agora <= fim
+
+        print(f"bot ta ativo???: {ativo}")
+        return ativo
 
     @commands.command()
     async def karaoke(self, ctx, *, musica: str):
