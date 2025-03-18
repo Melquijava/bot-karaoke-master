@@ -22,8 +22,8 @@ class Karaoke(commands.Cog):
 
     def bot_ativo(self):
         agora = datetime.now().time()
-        inicio = time(19, 0)  # 19:00 (7 da noite)
-        fim = time(2, 0)      # 02:00 (2 da madrugada)
+        inicio = time(19, 0)
+        fim = time(2, 0)
         return inicio <= agora or agora <= fim
 
     @commands.command()

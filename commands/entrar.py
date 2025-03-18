@@ -1,14 +1,23 @@
 import discord
 from discord.ext import commands
+from datetime import datetime, time
 
 class Entrar(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         print("Cog Entrar inicializado!")
 
+    def bot_ativo(self):
+        agora = datetime.now().time()
+        inicio = time(19, 0)
+        fim = time(2, 0)
+        return inicio <= agora or agora <= fim
+
     @commands.command()
     async def entrar(self, ctx):
         print("Comando entrar foi chamado!")
+        if not self.bot_ativo():
+           return await ctx.send("Horário de funcionamento do bot: 19:00 às 02:00!")
         try:
             if ctx.author.voice:
                 channel = ctx.author.voice.channel
@@ -26,7 +35,6 @@ class Entrar(commands.Cog):
         except Exception as e:
             print(f"Erro ao entrar no canal de voz: {e}")
             await ctx.send(f"Ocorreu um erro ao entrar no canal de voz. Erro: {e}")
-
 async def setup(bot):
     print("Carregando Cog Entrar...")
     await bot.add_cog(Entrar(bot))

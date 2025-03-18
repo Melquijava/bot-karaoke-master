@@ -3,6 +3,7 @@ from discord.ext import commands
 import os
 import asyncio
 from dotenv import load_dotenv
+
 load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -16,7 +17,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 intents.presences = True
-intents.voice_states = True  # Adicione a permissão voice_states
+intents.voice_states = True
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 
