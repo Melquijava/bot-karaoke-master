@@ -16,6 +16,7 @@ intents = discord.Intents.default()
 intents.members = True
 intents.message_content = True
 intents.presences = True
+intents.voice_states = True  # Adicione a permissão voice_states
 
 bot = commands.Bot(command_prefix=PREFIX, intents=intents)
 

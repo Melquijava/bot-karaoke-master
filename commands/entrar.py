@@ -20,6 +20,9 @@ class Entrar(commands.Cog):
                     await ctx.send(f'Entrei no canal de voz: {channel}')
             else:
                 await ctx.send('Você precisa estar em um canal de voz!')
+        except discord.errors.ClientException as e:
+            print(f"Erro ao entrar no canal de voz (discord.errors.ClientException): {e}")
+            await ctx.send(f"Erro ao entrar no canal de voz (discord.errors.ClientException): Já estou em um canal de voz ou outro bot está usando!")
         except Exception as e:
             print(f"Erro ao entrar no canal de voz: {e}")
             await ctx.send(f"Ocorreu um erro ao entrar no canal de voz. Erro: {e}")
