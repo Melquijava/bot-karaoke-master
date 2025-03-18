@@ -11,7 +11,15 @@ class Sair(commands.Cog):
         agora = datetime.now().time()
         inicio = time(19, 0)
         fim = time(2, 0)
-        return inicio <= agora or agora <= fim
+
+        print(f"Agora: {agora}")
+        print(f"Início: {inicio}")
+        print(f"Fim: {fim}")
+
+        ativo = inicio <= agora or agora <= fim
+
+        print(f"Bot ativo: {ativo}")
+        return ativo
 
     @commands.command()
     async def sair(self, ctx):
