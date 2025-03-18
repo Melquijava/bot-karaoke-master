@@ -13,50 +13,66 @@ load_dotenv()
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 
+def is_within_working_hours():
+    """Verifica se o horário atual está dentro do horário de funcionamento do bot."""
+    now = datetime.now().time()
+    start_time = time(WORKING_HOURS_START, 0)
+    end_time = time(WORKING_HOURS_END, 0)
+    if WORKING_HOURS_START < WORKING_HOURS_END:
+        return start_time <= now <= end_time
+    else:
+        return start_time <= now or now <= end_time
+
 class Karaoke(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        if not all([SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET]):
-            print("Erro: Variáveis SPOTIFY_CLIENT_ID e SPOTIFY_CLIENT_SECRET não estão definidas.")
-        self.sp = spotipy.Spotify(auth_manager=spotipy.SpotifyClientCredentials(
-            client_id=SPOTIFY_CLIENT_ID,
-            client_secret=SPOTIFY_CLIENT_SECRET
-        ))
-
-    def is_within_working_hours(self):
-        now = datetime.now().time()
-        start_time = time(WORKING_HOURS_START, 0)
-        end_time = time(WORKING_HOURS_END, 0)
-        if WORKING_HOURS_START < WORKING_HOURS_END:
-            return start_time <= now <= end_time
-        else:  # Se cruza a meia-noite
-            return start_time <= now or now <= end_time
+        self.spotify = None  # Inicializa o cliente Spotify como None
+        if SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET:
+            try:
+                self.spotify = spotipy.Spotify(auth_manager=spotipy.SpotifyClientCredentials(
+                    client_id=SPOTIFY_CLIENT_ID,
+                    client_secret=SPOTIFY_CLIENT_SECRET
+                ))
+                print("Cliente Spotify inicializado com sucesso.")
+            except Exception as e:
+                print(f"Erro ao inicializar o cliente Spotify: {e}")
+        else:
+            print("Aviso: As variáveis SPOTIFY_CLIENT_ID e SPOTIFY_CLIENT_SECRET não estão definidas. O bot não poderá usar o Spotify.")
 
     @commands.command()
     async def karaoke(self, ctx, *, musica: str):
-        if not self.is_within_working_hours():
+        """Toca uma música de karaokê no canal de voz."""
+
+        if not is_within_working_hours():
             await ctx.send(f"O bot funciona das {WORKING_HOURS_START:02d}:00 às {WORKING_HOURS_END:02d}:00!")
             return
-        if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
-            await ctx.send("Erro: As variáveis SPOTIFY_CLIENT_ID ou SPOTIFY_CLIENT_SECRET não estão configuradas!")
-            return
-        if ctx.voice_client is None:
-            await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
+
+        if not ctx.author.voice:
+            await ctx.send("Você precisa estar em um canal de voz para usar este comando.")
             return
 
+        if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+            await ctx.send("As variáveis SPOTIFY_CLIENT_ID e SPOTIFY_CLIENT_SECRET não estão configuradas. A busca no Spotify não estará disponível.")
+
         try:
-            print(f"Procurando a música: {musica}")
-            # Buscar no Spotify
-            results = self.sp.search(q=musica, limit=1, type='track')
-            if results['tracks']['items']:
-                track = results['tracks']['items'][0]
-                nome_musica = track['name']
-                artista = track['artists'][0]['name']
-                pesquisa = f"{nome_musica} {artista} instrumental"
-                print(f"Encontrada no Spotify: {pesquisa}")
-            else:
-                pesquisa = f"{musica} instrumental"
-                print(f"Não encontrada no Spotify, procurando no YouTube por: {pesquisa}")
+            await ctx.send(f"Procurando a música: {musica}")
+
+            # Tentar buscar a música no Spotify
+            pesquisa = musica  # Inicializa com a pesquisa original
+            if self.spotify:
+                try:
+                    results = self.spotify.search(q=musica, limit=1, type='track')
+                    if results['tracks']['items']:
+                        track = results['tracks']['items'][0]
+                        nome_musica = track['name']
+                        artista = track['artists'][0]['name']
+                        pesquisa = f"{nome_musica} {artista} instrumental"
+                        await ctx.send(f"Encontrada no Spotify: {nome_musica} - {artista}")
+                    else:
+                        await ctx.send("Não encontrada no Spotify, procurando no YouTube...")
+                except Exception as e:
+                    print(f"Erro ao buscar no Spotify: {e}")
+                    await ctx.send("Erro ao buscar no Spotify. Tentando no YouTube...")
 
             # Configurar yt-dlp
             ydl_opts = {
@@ -97,7 +113,6 @@ class Karaoke(commands.Cog):
                 ffmpeg_options = {'options': '-vn'}
                 try:
                     ctx.voice_client.play(discord.FFmpegPCMAudio(caminho_absoluto, **ffmpeg_options))
-
                     await ctx.send(f'Tocando: {pesquisa}')
 
                     # Mostrar letra sincronizada
