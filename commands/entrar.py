@@ -1,39 +1,27 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, time
+from config import WORKING_HOURS_START, WORKING_HOURS_END
 
 class Entrar(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         print("Cog Entrar inicializado!")
 
-    def bot_ativo(self):
-        agora = datetime.now().time()
-        inicio = time(19, 0)
-        fim = time(2, 0)
-         
-        print(f"agora dentro do COG de entrar!: {agora}")
-        print(f"começando dentro do COG de entrar: {inicio}")
-        print(f"fim dentro do COG de entrar: {fim}")
-       
-
-        ativo = inicio <= agora or agora <= fim
-        return ativo
-
-    @commands.command()
-    async def horario_funcionamento(self, ctx):
-         if self.bot_ativo():
-            await ctx.send("O bot está funcionando nesse momento nesse horário ATIVO!")
-         if not self.bot_ativo():
-            await ctx.send("O bot nao está em horario de funcionamento, ATENÇÂO")
+    def is_within_working_hours(self):
+        now = datetime.now().time()
+        start_time = time(WORKING_HOURS_START, 0)
+        end_time = time(WORKING_HOURS_END, 0)
+        if WORKING_HOURS_START < WORKING_HOURS_END:
+            return start_time <= now <= end_time
+        else:  # Se cruza a meia-noite
+            return start_time <= now or now <= end_time
 
     @commands.command()
     async def entrar(self, ctx):
-        print("Comando entrar foi chamado!")
-
-        if not self.bot_ativo():
-            return await ctx.send("Horário de funcionamento do bot: 19:00 às 02:00!")
-        
+        if not self.is_within_working_hours():
+            await ctx.send(f"O bot funciona das {WORKING_HOURS_START:02d}:00 às {WORKING_HOURS_END:02d}:00!")
+            return
         try:
             if ctx.author.voice:
                 channel = ctx.author.voice.channel
@@ -53,6 +41,4 @@ class Entrar(commands.Cog):
             await ctx.send(f"Ocorreu um erro ao entrar no canal de voz. Erro: {e}")
 
 async def setup(bot):
-    print("Carregando Cog Entrar...")
     await bot.add_cog(Entrar(bot))
-    print("Cog Entrar carregado!")

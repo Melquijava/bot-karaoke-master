@@ -5,51 +5,49 @@ import yt_dlp
 import spotipy
 import os
 from dotenv import load_dotenv
-from config import LETRA
+from config import LETRA, WORKING_HOURS_START, WORKING_HOURS_END
 from datetime import datetime, time
 
 load_dotenv()
 
-# Recuperar tokens do .env
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-
 
 class Karaoke(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        print("Cog Karaoke inicializado!")
+        if not all([SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET]):
+            print("Erro: Variáveis SPOTIFY_CLIENT_ID e SPOTIFY_CLIENT_SECRET não estão definidas.")
+        self.sp = spotipy.Spotify(auth_manager=spotipy.SpotifyClientCredentials(
+            client_id=SPOTIFY_CLIENT_ID,
+            client_secret=SPOTIFY_CLIENT_SECRET
+        ))
 
-    def bot_ativo(self):
-        agora = datetime.now().time()
-        inicio = time(19, 0)
-        fim = time(2, 0)
-
-        ativo = inicio <= agora or agora <= fim
-
-        print(f"bot ta ativo???: {ativo}")
-        return ativo
+    def is_within_working_hours(self):
+        now = datetime.now().time()
+        start_time = time(WORKING_HOURS_START, 0)
+        end_time = time(WORKING_HOURS_END, 0)
+        if WORKING_HOURS_START < WORKING_HOURS_END:
+            return start_time <= now <= end_time
+        else:  # Se cruza a meia-noite
+            return start_time <= now or now <= end_time
 
     @commands.command()
     async def karaoke(self, ctx, *, musica: str):
+        if not self.is_within_working_hours():
+            await ctx.send(f"O bot funciona das {WORKING_HOURS_START:02d}:00 às {WORKING_HOURS_END:02d}:00!")
+            return
+        if not SPOTIFY_CLIENT_ID or not SPOTIFY_CLIENT_SECRET:
+            await ctx.send("Erro: As variáveis SPOTIFY_CLIENT_ID ou SPOTIFY_CLIENT_SECRET não estão configuradas!")
+            return
+        if ctx.voice_client is None:
+            await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
+            return
+
         try:
-            if not self.bot_ativo():
-                await ctx.send("O bot só funciona das 19h às 2h!")
-                return
-            if ctx.voice_client is None:
-                await ctx.send("O bot precisa estar em um canal de voz! Use !entrar.")
-                return
-
             print(f"Procurando a música: {musica}")
-
-            # Configurar Spotipy
-            sp = spotipy.Spotify(auth_manager=spotipy.SpotifyClientCredentials(
-                client_id=SPOTIFY_CLIENT_ID,
-                client_secret=SPOTIFY_CLIENT_SECRET
-            ))
-
             # Buscar no Spotify
-            results = sp.search(q=musica, limit=1, type='track')
+            results = self.sp.search(q=musica, limit=1, type='track')
             if results['tracks']['items']:
                 track = results['tracks']['items'][0]
                 nome_musica = track['name']
@@ -119,6 +117,4 @@ class Karaoke(commands.Cog):
             await ctx.send("Ocorreu um erro ao executar o comando karaoke.")
 
 async def setup(bot):
-    print("Carregando Cog Karaoke...")
     await bot.add_cog(Karaoke(bot))
-    print("Cog Karaoke carregado!")
